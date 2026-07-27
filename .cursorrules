@@ -1,0 +1,214 @@
+# LoveHub — Cursor Rules (Fable 5 Optimized)
+
+## PROJECT INFO
+- Flutter Android App, package: `com.example.lovehub`
+- Clean Architecture: Presentation → Domain → Data
+- State: Riverpod ^2.5.1 | Navigation: go_router | Min SDK: 26
+- Firebase Spark plan (FREE — không dùng Cloud Functions vì cần Blaze)
+
+---
+
+## FOLDER STRUCTURE
+```
+lib/
+├── core/                    # Shared: errors, utils, constants
+├── config/                  # Routes, theme, router
+├── features/
+│   ├── auth/
+│   │   ├── domain/entities/ # AuthEntity
+│   │   ├── data/repositories/
+│   │   └── presentation/screens/, providers/
+│   ├── couple/
+│   ├── streak/
+│   ├── pet/
+│   ├── memory/
+│   ├── mood/
+│   ├── saving_jar/
+│   ├── ai_chat/
+│   └── settings/
+├── services/                # Cloudinary, OneSignal push, Groq AI
+└── main.dart
+```
+
+---
+
+## CODING RULES
+
+### Widgets
+- Default: `StatelessWidget` + `ConsumerWidget` (Riverpod)
+- `StatefulWidget` CHỈ khi cần AnimationController, TextEditingController, FocusNode
+- Luôn dùng `const` constructor
+- Widget > 50 lines → extract ra file riêng
+- KHÔNG đặt business logic, Firebase calls trong `build()`
+
+### Providers (Riverpod)
+- Đặt trong `features/{feature}/presentation/providers/`
+- Naming: `{feature}{Type}Provider` → `streakStreamProvider`, `petStateProvider`
+- `StreamProvider` cho Firestore real-time data
+- `StateNotifierProvider` cho complex mutable state
+- LUÔN handle AsyncValue: `.when(data:, loading:, error:)`
+
+### Architecture
+- Repository interface → `domain/`
+- Repository implementation → `data/`
+- UseCase: 1 class, 1 method `call()`
+- Entity: immutable, KHÔNG có Firebase dependency
+- Layer: Presentation→Domain OK, Data→Domain OK, KHÔNG ngược
+
+### Naming
+- Files: `snake_case` (e.g., `streak_repository.dart`)
+- Classes: `PascalCase` (e.g., `StreakRepository`)
+- Variables/methods: `camelCase` (e.g., `currentStreak`)
+- Constants: `SCREAMING_SNAKE` (e.g., `MAX_RECOVERY_TOKENS = 4`)
+- Private: `_underscore` prefix
+
+---
+
+## FIREBASE RULES
+
+### Firestore
+- Luôn handle Stream errors: `.handleError()`
+- Enable offline persistence trong `main.dart` (1 lần duy nhất)
+- Nhiều document liên quan → `.runTransaction()`
+- Nhiều document độc lập → `.batch()`
+- KHÔNG `.get()` trong loop → dùng `.where().get()` hoặc batch reads
+- Check Security Rules compatibility khi viết query mới
+
+### Security Rules
+- KHÔNG: `allow read, write: if true`
+- Mọi rule phải có `request.auth != null`
+- Couple data chỉ 2 thành viên được đọc/ghi
+
+### Structure
+```
+/users/{uid}
+/couples/{coupleId}
+/streaks/{coupleId}
+/pets/{coupleId}
+/memories/{coupleId}
+/moods/{coupleId}
+/savingJars/{coupleId}
+/aiUsage/{coupleId}
+```
+
+---
+
+## EXTERNAL SERVICES (KHÔNG hardcode trong code)
+
+| Service | Used For | Config Location |
+|---------|----------|-----------------|
+| Firebase Auth/Firestore | Auth, database | `firebase_options.dart` (generated) |
+| Groq API | AI Chat (thay Gemini) | `lib/config/api_config.dart` |
+| Cloudinary | Memory photos | `lib/config/api_config.dart` (cloud_name, unsigned preset) |
+| OneSignal | Push notification | `lib/config/api_config.dart` (App ID, REST Key) |
+| Cloudflare Worker | Push relay (bypass CORS) | URL trong push service |
+
+### Groq API
+- REST direct call (OpenAI-compatible)
+- Model: auto-fallback qua danh sách
+- Context-aware: tên 2 người, ngày yêu, streak, mood, pet, saving jar
+- Giới hạn: 20 câu/ngày cho cả cặp (đếm trong `aiUsage/{coupleId}`)
+
+### OneSignal Push
+- External ID = Firebase UID
+- Cloudflare Worker relay: `https://lovehub-push.lehuuluan00.workers.dev`
+- Trigger: check-in, mood change, memory added, pet fed
+
+### Cloudinary
+- Cloud name: `df3jqgrvk`
+- Unsigned upload preset: `lovehub_unsigned`
+
+---
+
+## ANDROID NATIVE
+
+### Home Screen Widget
+- Kotlin code: `android/app/src/main/kotlin/com/lovehub/`
+- Update: WorkManager (15 phút minimum)
+- Constraints: `networkType = NOT_REQUIRED`, `requiresBatteryNotLow = true`
+
+### Foreground Service
+- Thông báo thường trú (toggle on/off)
+- Cần notification channel + icon + title + text
+
+### AlarmManager
+- Milestone reminders
+- Persist qua device restart: `BOOT_COMPLETED` receiver
+
+---
+
+## ANIMATIONS
+
+| Type | Use Case | Implementation |
+|------|----------|----------------|
+| Rive | Pet (Cat, Habit Cat, Muza) | State machine: idle/happy/sad/levelup |
+| Lottie | Confetti, streak vỡ, loading, celebration | `LottieBuilder.asset()` |
+| flutter_animate | Micro: button press, card appear | `.animate().fadeIn().slideY()` |
+
+- Pet Rive files: `assets/animations/`
+- Lottie JSON: `assets/animations/`
+- KHÔNG dùng flutter_animate cho pet
+
+---
+
+## BUSINESS LOGIC (DON'T CHANGE)
+
+### Streak
+- Max recovery tokens: 4
+- Token earn: 15 ngày liên tiếp → +1 token (counter reset mỗi lần nhận)
+- Streak break window: 48h để dùng token
+- Check-in deadline: 23:59
+- At-risk warning: 21:00 nếu chưa check-in
+
+### Pet
+- Max HP: 100 | Max Level: 10
+- HP decay: 5 HP/ngày không check-in
+- Feed: 20 LP → +30 HP
+- Level up: level × 100 LP cần
+
+### Love Points
+- Check-in: +10 | Diary: +20 | Mood: +5
+- Both positive mood bonus: +15
+- 7-day streak bonus: +50
+- Weekly mission: +30
+
+---
+
+## PENDING TASKS (đã ghi trong LOVEHUB SUMMARY)
+
+1. **Test**: WorkManager 15 phút, streak qua ngày, HP decay
+2. **Test lại**: Push notification (sau khi sửa UI mood/check-in)
+3. **Export Memories**: PDF/ảnh/zip (chưa làm)
+4. **Backup Data**: cơ chế export JSON (chưa làm)
+5. **Delete Account**: thao tác xóa vĩnh viễn (chưa làm)
+6. **Rà bản dịch Tiếng Việt**: sau localization sweep
+7. **Habit Cat .riv**: file không có input tương tác (cần thay file khác nếu muốn)
+
+---
+
+## PROMPT STYLE (for Cursor)
+
+**DÙNG:**
+- Prompt ngắn, cụ thể
+- "Fix lỗi X trong file Y"
+- "Thêm feature Z vào màn A"
+
+**TRÁNH:**
+- "Sweep toàn project" hoặc "until clean"
+- Prompt quá dài dòng (đã từng ngốn 200-650 request)
+- Làm nhiều việc cùng lúc → chia nhỏ
+
+---
+
+## CONFIG FILES (DON'T EDIT MANUALLY)
+
+- `google-services.json` → chỉ tải từ Firebase Console
+- API keys trong `lib/config/api_config.dart` (đã .gitignore)
+
+---
+
+## WHEN STUCK
+
+1. Architecture → LOVEHUB_MASTER_PLAN.md Section 4
+2. Business logic → phần `BUSINESS LOGIC` trong file này
+3. Firebase rules → phần `FIREBASE RULES` trong file này

@@ -1,0 +1,220 @@
+rules_version = '2';
+
+// ============================================================================
+// LoveHub — Firestore Security Rules (HARDENED PRODUCTION)
+// Layer 1+ of defense-in-depth.
+//
+// Changes vs. v1:
+//   - Helper functions for input shape (isIntIn, isBoundedTimestamp,
+//     isReasonableTimestamp).
+//   - Field-level range checks on every write (HP, LP, money,
+//     timestamps must be in a sane window).
+//   - Integrity attestation required on writes (see
+//     `integrityVerdict` on user doc).
+//   - Couple-scoped writes must include coupleId matching the path.
+//   - No client can write `memberA`/`memberB`/`createdAt` after
+//     the create call (immutable fields).
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ──────────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null && request.auth.uid is string;
+    }
+
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function coupleExists(coupleId) {
+      return exists(/databases/$(database)/documents/couples/$(coupleId));
+    }
+
+    function isInCouple(coupleId) {
+      return isSignedIn() &&
+        coupleExists(coupleId) &&
+        (
+          get(/databases/$(database)/documents/couples/$(coupleId)).data.memberA == request.auth.uid ||
+          get(/databases/$(database)/documents/couples/$(coupleId)).data.memberB == request.auth.uid
+        );
+    }
+
+    function hasIntegrity() {
+      // User doc exists and contains a recent (≤ 24 h) verdict labelled OK.
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.integrityVerdict.device == 'ok' &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.integrityVerdict.app == 'ok' &&
+        (
+          request.time - get(/databases/$(database)/documents/users/$(request.auth.uid)).data.integrityVerdict.ts < duration.value(24, 'h')
+        );
+    }
+
+    function isString(v) { return v is string; }
+    function isInt(v)   { return v is int; }
+    function isBool(v)  { return v is bool; }
+
+    function stringLen(v, max) {
+      return isString(v) && v.size() <= max;
+    }
+
+    function isIntIn(v, lo, hi) {
+      return isInt(v) && v >= lo && v <= hi;
+    }
+
+    function isTimestamp(v) {
+      return v is timestamp;
+    }
+
+    function timestampInPast(v, maxAgeSeconds) {
+      return isTimestamp(v) &&
+        request.time - v >= duration.value(0, 's') &&
+        request.time - v < duration.value(maxAgeSeconds, 's');
+    }
+
+    function timestampNotFuture(v, maxAheadSeconds) {
+      return isTimestamp(v) &&
+        v - request.time >= duration.value(0, 's') &&
+        v - request.time < duration.value(maxAheadSeconds, 's');
+    }
+
+    function hasAllKeys(map, keys) {
+      return map.keys().hasAll(keys);
+    }
+
+    function hasOnlyKeys(map, keys) {
+      return map.keys().hasOnly(keys);
+    }
+
+    // ─── User profiles ────────────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if isSelf(uid)
+                  || (isSignedIn() &&
+                      resource.data.coupleId != null &&
+                      isInCouple(resource.data.coupleId));
+
+      allow create: if isSelf(uid) &&
+        hasAllKeys(request.resource.data, ['uid', 'email', 'createdAt']) &&
+        request.resource.data.uid == uid &&
+        stringLen(request.resource.data.uid, 128) &&
+        stringLen(request.resource.data.email, 254);
+
+      // Updates:
+      //  - Immutable: uid, createdAt
+      //  - integrityVerdict: only the verifyIntegrityToken Cloud
+      //    Function can write this. We deny client writes here.
+      //  - coupleId: clients can set ONCE from null → coupleId,
+      //    but cannot change an existing coupleId (so an attacker
+      //    who compromises a session can't move the user to
+      //    another couple).
+      allow update: if isSelf(uid) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        // client must NOT touch integrityVerdict
+        request.resource.data.integrityVerdict == resource.data.integrityVerdict &&
+        // coupleId: null → non-null allowed; non-null → same non-null
+        (
+          (resource.data.coupleId == null &&
+           request.resource.data.coupleId is string &&
+           stringLen(request.resource.data.coupleId, 64)) ||
+          (isString(resource.data.coupleId) &&
+           resource.data.coupleId == request.resource.data.coupleId)
+        );
+
+      allow delete: if isSelf(uid);
+
+      match /{sub=**} {
+        allow read, write: if isSelf(uid);
+      }
+    }
+
+    // ─── Couples ──────────────────────────────────────────────────────────
+    match /couples/{coupleId} {
+      allow read: if isInCouple(coupleId)
+                  || (isSignedIn() &&
+                      resource.data.pendingInviteFor == request.auth.uid);
+
+      allow create: if isSignedIn() &&
+        hasAllKeys(request.resource.data, ['code', 'memberA', 'createdAt']) &&
+        request.resource.data.memberA == request.auth.uid &&
+        isString(request.resource.data.code) &&
+        stringLen(request.resource.data.code, 24) &&
+        timestampInPast(request.resource.data.createdAt, 600); // created within 10 min
+
+      allow update: if isInCouple(coupleId) &&
+        request.resource.data.code == resource.data.code &&
+        (
+          (resource.data.memberA != null && resource.data.memberB != null)
+          ||
+          (resource.data.memberA == request.auth.uid &&
+           resource.data.pendingInviteFor == request.auth.uid &&
+           request.resource.data.memberB == request.auth.uid)
+        );
+
+      allow delete: if false;
+    }
+
+    // ─── Couple-namespaced collections (Streaks, Pet, Mood, AI usage) ──
+    // Pattern: {col}/{coupleId}
+    match /{collection}/{coupleId} {
+      allow read: if hasIntegrity() && isMemberOf(coupleId);
+
+      // Writes are scoped: member of the couple + the doc carries
+      // `coupleId` matching the path + the write is reasonable in
+      // timestamp + bounds. The integrity gate means a stolen
+      // session on a tampered device can't push writes.
+      allow write: if hasIntegrity() &&
+        isMemberOf(coupleId) &&
+        request.resource.data.coupleId == coupleId &&
+        timestampInPast(request.resource.data.updatedAt, 86400) &&
+        timestampNotFuture(request.resource.data.updatedAt, 60);
+
+      // Banned subcollections under a couple doc.
+      match /{document=**} {
+        allow read, write: if false;
+      }
+    }
+
+    // ─── Saving jars (nested) ────────────────────────────────────────────
+    match /savingJars/{coupleId}/{jarCollection}/{jarId} {
+      allow read: if hasIntegrity() && isMemberOf(coupleId);
+
+      allow write: if hasIntegrity() &&
+        isMemberOf(coupleId) &&
+        request.resource.data.coupleId == coupleId &&
+        isIntIn(request.resource.data.amount, 0, 1000000000) &&
+        timestampInPast(request.resource.data.createdAt, 86400);
+    }
+
+    match /savingJars/{coupleId}/{jarCollection}/{jarId}/{sub=**} {
+      allow read, write: if hasIntegrity() && isMemberOf(coupleId);
+    }
+
+    // ─── AI usage counter — server only ────────────────────────────────
+    match /aiUsage/{coupleId}/{document=**} {
+      allow read: if hasIntegrity() && isMemberOf(coupleId);
+      allow write: if false;
+    }
+
+    // ─── Link codes — server only ──────────────────────────────────────
+    match /linkCodes/{code} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if false;
+    }
+
+    // ─── Catch-all ─────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

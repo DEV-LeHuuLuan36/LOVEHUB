@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <!-- Heart with sparkles - Celebration icon -->
+    <!-- Heart -->
+    <path
+        android:fillColor="#FF6B9D"
+        android:pathData="M100,180c-5,-7 -14,-19 -14,-30c0,-15 12,-25 25,-25c8,0 14,4 19,10c5,-6 11,-10 19,-10c13,0 25,10 25,25c0,11 -9,23 -14,30c-15,20 -30,25 -30,25s-15,-5 -30,-25z"/>
+    <!-- Sparkle 1 -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M40,50 L45,40 L50,50 L60,55 L50,60 L45,70 L40,60 L30,55 Z"/>
+    <!-- Sparkle 2 -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M160,70 L163,63 L166,70 L173,73 L166,76 L163,83 L160,76 L153,73 Z"/>
+    <!-- Sparkle 3 -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M80,30 L82,25 L84,30 L89,32 L84,34 L82,39 L80,34 L75,32 Z"/>
+</vector>

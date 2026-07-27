@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <!-- Savings jar icon -->
+    <!-- Jar body -->
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M50,60 L50,170 Q50,180 60,180 L140,180 Q150,180 150,170 L150,60 Z"/>
+    <!-- Jar lid -->
+    <path
+        android:fillColor="#8D6E63"
+        android:pathData="M45,50 L45,70 Q45,75 50,75 L150,75 Q155,75 155,70 L155,50 Q155,45 150,45 L50,45 Q45,45 45,50 Z"/>
+    <!-- Coin slot -->
+    <path
+        android:fillColor="#5D4037"
+        android:pathData="M85,45 L115,45 L115,55 L85,55 Z"/>
+    <!-- Coins inside -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M70,140m-12,0a12,12 0,1 1,24 0a12,12 0,1 1,-24 0"/>
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M100,150m-15,0a15,15 0,1 1,30 0a15,15 0,1 1,-30 0"/>
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M130,140m-12,0a12,12 0,1 1,24 0a12,12 0,1 1,-24 0"/>
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M85,120m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0"/>
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M115,120m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0"/>
+    <!-- Heart on jar -->
+    <path
+        android:fillColor="#FF6B9D"
+        android:pathData="M100,100c-4,-5 -12,-14 -12,-20c0,-10 8,-18 18,-18c6,0 10,3 14,8c4,-5 8,-8 14,-8c10,0 18,8 18,18c0,6 -8,15 -12,20c-10,14 -20,17 -20,17s-10,-3 -20,-17z"/>
+</vector>

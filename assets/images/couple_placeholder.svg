@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <!-- Couple holding hands -->
+    <!-- Person 1 (left) -->
+    <path
+        android:fillColor="#FFB6C1"
+        android:pathData="M60,180 L60,100 Q60,80 75,80 Q90,80 90,100 L90,180 Z"/>
+    <path
+        android:fillColor="#FFB6C1"
+        android:pathData="M75,80m-20,0a20,20 0,1 1,40 0a20,20 0,1 1,-40 0"/>
+    <!-- Person 2 (right) -->
+    <path
+        android:fillColor="#87CEEB"
+        android:pathData="M110,180 L110,100 Q110,80 125,80 Q140,80 140,100 L140,180 Z"/>
+    <path
+        android:fillColor="#87CEEB"
+        android:pathData="M125,80m-20,0a20,20 0,1 1,40 0a20,20 0,1 1,-40 0"/>
+    <!-- Holding hands -->
+    <path
+        android:fillColor="#FFE4E1"
+        android:pathData="M85,110 L115,110 L115,130 L85,130 Z"/>
+    <!-- Heart in middle -->
+    <path
+        android:fillColor="#FF6B9D"
+        android:pathData="M100,130c-3,-4 -8,-11 -8,-17c0,-9 7,-14 14,-14c5,0 8,2 11,6c3,-4 6,-6 11,-6c7,0 14,5 14,14c0,6 -5,13 -8,17c-8,11 -17,14 -17,14s-9,-3 -17,-14z"/>
+</vector>

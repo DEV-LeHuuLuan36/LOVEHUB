@@ -1,0 +1,111 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# ============================================================================
+# SECRETS — never commit
+# ============================================================================
+# All lib/config/*_config.dart should be ignored.
+lib/core/config/gemini_config.dart
+lib/core/config/ai_config.dart
+lib/core/config/onesignal_config.dart
+lib/core/config/api_config.dart
+lib/core/config/groq_config.dart
+lib/core/config/cloudinary_config.dart
+lib/core/config/one_signal_config.dart
+lib/core/config/firebase_config.dart
+lib/config/
+# Allow only the example file so devs know which keys to fill in.
+!lib/config/api_config.example.dart
+!lib/config/api_config.example
+!lib/config/.gitkeep
+
+# Env files (use --dart-define for runtime).
+.env
+.env.*
+*.env
+!.env.example
+
+# Firebase local keys (Android google-services.json contains YOUR project
+# keys; the Firebase CLI generates it, so keep it out of the repo).
+android/app/google-services.json
+android/app/*/google-services.json
+ios/Runner/GoogleService-Info.plist
+ios/Runner/*/GoogleService-Info.plist
+
+# Keystore / signing files (release builds).
+android/key.properties
+android/app/upload-keystore.jks
+android/app/*.jks
+android/app/*.keystore
+android/app/lovehub_upload_keystore.jks
+android/keystore.properties
+
+# Maps API key placeholder (real key goes in local.properties — gitignored)
+android/local.properties
+
+# Build outputs
+android/app/outputs/
+build/
+*.apk
+*.aab
+*.appbundle
+
+# Cloud keystore for iOS.
+ios/Runner/Runner.entitlements
+ios/Runner/Keychain-Key.p12
+ios/Runner/*.p12
+
+# Service-account JSON (used by Cloud Functions / Admin SDK).
+**/service-account.json
+**/firebase-adminsdk-*.json
+**/gcp-*.json
+
+# Backup files / exports (might contain user data).
+*.backup
+*.bak
+dump/
+exports/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release

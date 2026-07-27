@@ -1,0 +1,73 @@
+---
+description: Flutter widget patterns, Riverpod, và Clean Architecture cho LoveHub
+globs: **/*.dart
+alwaysApply: true
+---
+
+# Flutter Rules — LoveHub Project
+
+## Widget Best Practices
+- Default: StatelessWidget + ConsumerWidget (Riverpod)
+- StatefulWidget chỉ dùng khi thực sự cần lifecycle: AnimationController, TextEditingController
+- Luôn dùng `const` constructor cho widgets tĩnh
+- Widget > 50 lines → tách file riêng trong widgets/ hoặc màn hình riêng
+- KHÔNG đặt Firebase calls hoặc business logic trong Widget build()
+
+## Riverpod Patterns
+
+```dart
+// Stream từ Firestore (preferred pattern)
+@riverpod
+Stream<StreakEntity> streakStream(StreakStreamRef ref) {
+  final coupleId = ref.watch(coupleIdProvider);
+  return ref.read(streakRepositoryProvider).watchStreak(coupleId);
+}
+
+// Luôn handle tất cả states
+ref.watch(streakStreamProvider).when(
+  data: (streak) => StreakWidget(streak: streak),
+  loading: () => const ShimmerLoading(),
+  error: (e, st) => ErrorWidget(message: e.toString()),
+);
+```
+
+## Error Handling Pattern
+```dart
+// Repository layer
+Future<Either<Failure, void>> checkin(String coupleId) async {
+  try {
+    await _firestore.doc('streaks/$coupleId').update({...});
+    return const Right(null);
+  } on FirebaseException catch (e) {
+    return Left(FirebaseFailure(e.message));
+  }
+}
+
+// Presentation layer
+result.fold(
+  (failure) => ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(failure.message)),
+  ),
+  (_) => ref.invalidate(streakStreamProvider),
+);
+```
+
+## Performance Rules
+- ListView → ListView.builder (không tạo tất cả items cùng lúc)
+- Image.network → CachedNetworkImage
+- `const` widgets khi không thay đổi
+- Tránh `setState` trong parent widget để re-render child không cần thiết
+
+## Naming Conventions
+- Files: `streak_repository.dart`, `pet_entity.dart`
+- Classes: `StreakRepository`, `PetEntity`, `CheckinUseCase`
+- Providers: `streakStreamProvider`, `petStateProvider`
+- Private: `_coupleId`, `_calculateHP()`
+
+## Architecture Layer Rules
+```
+✅ Presentation có thể import Domain
+✅ Data có thể import Domain
+❌ Domain KHÔNG import Presentation hoặc Data
+❌ Presentation KHÔNG import Data trực tiếp (phải qua Repository interface)
+```

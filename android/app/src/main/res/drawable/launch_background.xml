@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  LoveHub splash screen — Android 12+ (API 31) smooth launch.
+  Applied before Flutter engine starts (windowBackground).
+  Gradient matches the app brand colors.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#FF6B9D"
+                android:endColor="#C44569"
+                android:angle="135"
+                android:type="linear"/>
+        </shape>
+    </item>
+
+    <!-- Centered heart logo (using a shape, no PNG needed) -->
+    <item
+        android:gravity="center"
+        android:width="96dp"
+        android:height="96dp">
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF"/>
+            <size android:width="96dp" android:height="96dp"/>
+        </shape>
+    </item>
+
+    <!-- Heart cutout overlay (white circle background) -->
+    <item
+        android:gravity="center"
+        android:width="72dp"
+        android:height="72dp">
+        <shape android:shape="oval">
+            <solid android:color="#FF6B9D"/>
+            <size android:width="72dp" android:height="72dp"/>
+        </shape>
+    </item>
+</layer-list>

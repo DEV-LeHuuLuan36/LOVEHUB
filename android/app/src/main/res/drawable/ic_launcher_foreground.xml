@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Heart shape centered -->
+    <group
+        android:translateX="27"
+        android:translateY="27">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M27,10.5c-5.1,-7.5 -14.5,-7.5 -19.5,0c-5,-7.5 -14.5,-7.5 -19.5,0c-5,7.5 -5,19.5 0,27c9.75,14.5 19.5,21 19.5,21s9.75,-6.5 19.5,-21c5,-7.5 5,-19.5 0,-27z"/>
+        <!-- Two overlapping circles for couple symbol -->
+        <path
+            android:fillColor="#FFB6C1"
+            android:pathData="M15,20m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0"/>
+        <path
+            android:fillColor="#FF6B9D"
+            android:pathData="M27,20m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0"/>
+    </group>
+</vector>

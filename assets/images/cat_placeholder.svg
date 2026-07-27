@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <!-- Cat face placeholder -->
+    <!-- Head -->
+    <path
+        android:fillColor="#FFB6C1"
+        android:pathData="M100,170c-44,0 -80,-36 -80,-80c0,-44 36,-80 80,-80c44,0 80,36 80,80c0,44 -36,80 -80,80z"/>
+    <!-- Left ear -->
+    <path
+        android:fillColor="#FF8FAB"
+        android:pathData="M40,70 L20,20 L60,50 Z"/>
+    <!-- Right ear -->
+    <path
+        android:fillColor="#FF8FAB"
+        android:pathData="M160,70 L180,20 L140,50 Z"/>
+    <!-- Left eye -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70,90m-15,0a15,15 0,1 1,30 0a15,15 0,1 1,-30 0"/>
+    <path
+        android:fillColor="#333333"
+        android:pathData="M70,90m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0"/>
+    <!-- Right eye -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M130,90m-15,0a15,15 0,1 1,30 0a15,15 0,1 1,-30 0"/>
+    <path
+        android:fillColor="#333333"
+        android:pathData="M130,90m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0"/>
+    <!-- Nose -->
+    <path
+        android:fillColor="#FF6B9D"
+        android:pathData="M100,110 L95,120 L105,120 Z"/>
+    <!-- Mouth -->
+    <path
+        android:strokeColor="#FF6B9D"
+        android:strokeWidth="2"
+        android:pathData="M90,125 Q100,135 110,125"/>
+    <!-- Whiskers left -->
+    <path
+        android:strokeColor="#CCCCCC"
+        android:strokeWidth="1.5"
+        android:pathData="M50,100 L20,95"/>
+    <path
+        android:strokeColor="#CCCCCC"
+        android:strokeWidth="1.5"
+        android:pathData="M50,110 L20,115"/>
+    <!-- Whiskers right -->
+    <path
+        android:strokeColor="#CCCCCC"
+        android:strokeWidth="1.5"
+        android:pathData="M150,100 L180,95"/>
+    <path
+        android:strokeColor="#CCCCCC"
+        android:strokeWidth="1.5"
+        android:pathData="M150,110 L180,115"/>
+</vector>

@@ -1,0 +1,95 @@
+{
+  "version": "1.0",
+  "description": "Cloudflare WAF rules for the LoveHub push-relay Worker (lovehub-push.lehuuluan00.workers.dev).",
+  "notes": [
+    "Apply via `wrangler` rules or the Cloudflare dashboard.",
+    "These rules defend the entry point that delivers push notifications.",
+    "Real Firestore / Groq endpoints have their own Google Cloud Armor."
+  ],
+  "rules": [
+    {
+      "name": "block_bot_user_agents",
+      "priority": 1,
+      "action": "block",
+      "expression": "(lower(http.user_agent) contains \"bot\" and lower(http.user_agent) != \"googlebot\") or lower(http.user_agent) contains \"crawler\" or lower(http.user_agent) contains \"spider\" or lower(http.user_agent) contains \"scrapy\" or lower(http.user_agent) contains \"curl\" or lower(http.user_agent) contains \"python-requests\"",
+      "comment": "Block obvious non-mobile clients. Allow Googlebot for SEO."
+    },
+    {
+      "name": "block_no_referer",
+      "priority": 2,
+      "action": "challenge",
+      "expression": "not http.referer and not cf.client.bot",
+      "comment": "Force JS challenge when no Referer header (real app always sends one)."
+    },
+    {
+      "name": "rate_limit_per_ip",
+      "priority": 3,
+      "action": "block",
+      "expression": "rate(60, 1m)",
+      "rate_limit": { "requests": 30, "period": 60, "mitigation_timeout": 300 },
+      "comment": "30 req/min/IP. Mobile clients send ≤ 1 push/user-action."
+    },
+    {
+      "name": "rate_limit_per_couple",
+      "priority": 4,
+      "action": "block",
+      "expression": "rate(1000, 1h, key: http.request.body.raw[match_all(@.coupleId)])",
+      "rate_limit": { "requests": 200, "period": 3600, "mitigation_timeout": 3600 },
+      "comment": "200 pushes/hour per coupleId. Higher than expected usage."
+    },
+    {
+      "name": "block_oversized_body",
+      "priority": 5,
+      "action": "block",
+      "expression": "len(http.request.body.raw) > 4096",
+      "comment": "Push payload is always < 4 KB."
+    },
+    {
+      "name": "require_https",
+      "priority": 6,
+      "action": "block",
+      "expression": "not ssl",
+      "comment": "Reject plain HTTP (already handled by network_security_config but belt-and-braces)."
+    },
+    {
+      "name": "block_known_tor_exits",
+      "priority": 7,
+      "action": "block",
+      "expression": "ip.src in $tor_exit_nodes",
+      "comment": "Refresh the IP list weekly. Use cf.threat_score > 50 as a cheaper proxy if Tor list is stale."
+    },
+    {
+      "name": "block_high_threat_score",
+      "priority": 8,
+      "action": "block",
+      "expression": "cf.threat_score > 50",
+      "comment": "Cloudflare-assigned threat score; > 50 is highly suspicious."
+    },
+    {
+      "name": "geo_block_high_risk",
+      "priority": 9,
+      "action": "managed_challenge",
+      "expression": "ip.geoip.country in {\"RU\" \"CN\" \"KP\"}",
+      "comment": "Vietnam-only target audience. Adjust per business reality."
+    },
+    {
+      "name": "log_all_admin_endpoints",
+      "priority": 10,
+      "action": "log",
+      "expression": "http.request.uri.path contains \"/admin\" or http.request.uri.path contains \"/debug\"",
+      "comment": "Audit-trail all admin/debug hits even if allowed."
+    }
+  ],
+  "bot_management": {
+    "enable_js_challenge": true,
+    "enable_captcha_fallback": true,
+    "block_score_below": 30,
+    "comment": "Cloudflare Bot Management — paid add-on. Score 30 catches most simple scrapers."
+  },
+  "rate_limit_ip_lists": [
+    {
+      "name": "blocklist_known_offenders",
+      "comment": "Maintain via Cloudflare IP Lists API; add IPs caught by audit logger."
+    }
+  ]
+}

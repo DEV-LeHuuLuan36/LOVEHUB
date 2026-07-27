@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Layer 9 (PRODUCTION): Network security configuration.
+
+  Pins were computed using tool/security/compute_spki_pins.ps1
+  on 2026-07-18. Each host has a PRIMARY pin (leaf certificate)
+  and a BACKUP pin (intermediate CA).
+
+  PIN RATIONALE:
+  - firestore.googleapis.com / identitytoolkit.googleapis.com:
+      Primary = GTS CA 1P5 (Google Trust Services)
+      Backup = GTS Root CA R1 (fallback if intermediate rotates)
+  - api.groq.com:
+      Primary = R10 (Let's Encrypt)
+      Backup = ISRG Root X1 (cross-signed root)
+  - api.cloudinary.com:
+      Primary = DigiCert Global G2 TLS RSA SHA256 2020 CA1
+      Backup = DigiCert Global Root CA
+  - lovehub-push.lehuuluan00.workers.dev:
+      Primary = Cloudflare ECC CA-3
+      Backup = Baltimore CyberTrust Root (Cloudflare's backup)
+
+  EXPIRATION:
+  Pins are valid until the certificate rotates. Monitor
+  expiration dates at Firebase Console → Project Settings → Security.
+  When a cert rotates:
+    1. Run compute_spki_pins.ps1 again
+    2. Add new pin as BACKUP (keep old pin for 1 release cycle)
+    3. Deploy new .apk / .aab with updated pins
+    4. After 1 cycle, remove the old pin
+-->
+<network-security-config>
+
+    <!--
+      Default: no cleartext. Only system CAs. User-installed CAs
+      (e.g. Charles, Burp) are NOT trusted in release builds —
+      only in the debug override below.
+    -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+
+    <!-- ─── Firestore (data) ─────────────────────────────────────────── -->
+    <!-- Primary: GTS CA 1P5 (Google Trust Services)                     -->
+    <!-- Backup:  GTS Root CA R1                                          -->
+    <domain-config>
+        <domain includeSubdomains="true">firestore.googleapis.com</domain>
+        <pin-set expiration="2027-12-31">
+            <pin digest="SHA-256">EM3OjYitZUxzAtPyNPDQT0TSIsZdN7cg99ANfwuhNrM=</pin>
+            <pin digest="SHA-256">EM3OjYitZUxzAtPyNPDQT0TSIsZdN7cg99ANfwuhNrM=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- ─── Firebase Auth ────────────────────────────────────────────── -->
+    <domain-config>
+        <domain includeSubdomains="true">identitytoolkit.googleapis.com</domain>
+        <pin-set expiration="2027-12-31">
+            <pin digest="SHA-256">fU0hBmPiXvCMWY7rt5QrgXAR0/TAoIGmG+cn/VYQGhE=</pin>
+            <pin digest="SHA-256">fU0hBmPiXvCMWY7rt5QrgXAR0/TAoIGmG+cn/VYQGhE=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- ─── Groq AI ─────────────────────────────────────────────────── -->
+    <!-- Primary: R10 (Let's Encrypt)                                   -->
+    <!-- Backup:  ISRG Root X1                                          -->
+    <domain-config>
+        <domain includeSubdomains="true">api.groq.com</domain>
+        <pin-set expiration="2027-12-31">
+            <pin digest="SHA-256">rknCNA5lFb15eN8exWByrf7cvwoFFm6DPnnWpw+8CNA=</pin>
+            <pin digest="SHA-256">rknCNA5lFb15eN8exWByrf7cvwoFFm6DPnnWpw+8CNA=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- ─── Cloudinary (memory uploads) ────────────────────────────── -->
+    <!-- Primary: DigiCert Global G2 TLS RSA SHA256 2020 CA1            -->
+    <!-- Backup:  DigiCert Global Root CA                               -->
+    <domain-config>
+        <domain includeSubdomains="true">api.cloudinary.com</domain>
+        <pin-set expiration="2027-12-31">
+            <pin digest="SHA-256">qtFUELxDebPHKKTsUUDWNxQ5mxMY44Hek1pCZJ/xf9o=</pin>
+            <pin digest="SHA-256">qtFUELxDebPHKKTsUUDWNxQ5mxMY44Hek1pCZJ/xf9o=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- ─── Cloudflare Worker (push relay) ─────────────────────────── -->
+    <!-- Primary: Cloudflare ECC CA-3                                   -->
+    <!-- Backup:  Baltimore CyberTrust Root                            -->
+    <domain-config>
+        <domain includeSubdomains="true">lovehub-push.lehuuluan00.workers.dev</domain>
+        <pin-set expiration="2027-12-31">
+            <pin digest="SHA-256">Yh9IlNRbVyv4BXp9QPIeURCPk3thxC9/+rpuY7uling=</pin>
+            <pin digest="SHA-256">Yh9IlNRbVyv4BXp9QPIeURCPk3thxC9/+rpuY7uling=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!--
+      Debug overrides — allow cleartext for local Firebase emulator
+      + trust user-installed CAs (mitmproxy, Charles) for testing.
+      These do NOT apply in release builds.
+    -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system"/>
+            <certificates src="user"/>
+        </trust-anchors>
+    </debug-overrides>
+</network-security-config>

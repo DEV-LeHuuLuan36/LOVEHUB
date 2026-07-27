@@ -1,0 +1,88 @@
+plugins {
+    id "com.android.application"
+    id 'com.google.gms.google-services'
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.lovehub"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    // Load signing credentials from keystore.properties (gitignored).
+    def keystorePropertiesFile = rootProject.file("keystore.properties")
+    def keystoreProperties = new Properties()
+    if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    }
+
+    defaultConfig {
+        applicationId = "com.example.lovehub"
+        minSdk = 26
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+
+        // Enable multidex (Firebase + dependencies push us over 64K)
+        multiDexEnabled true
+
+        // Maps API key — injected at build time, never hardcoded.
+        // Set in local.properties: MAPS_API_KEY=YOUR_KEY
+        // Or via --dart-define=MAPS_API_KEY=YOUR_KEY
+        manifestPlaceholders = [
+            applicationName: "com.example.lovehub",
+            MAPS_API_KEY: (project.findProperty("MAPS_API_KEY") as String)
+                ?: (System.getenv("MAPS_API_KEY") ?: "REPLACE_MAPS_API_KEY"),
+            ONESIGNAL_APP_ID: (project.findProperty("ONESIGNAL_APP_ID") as String)
+                ?: (System.getenv("ONESIGNAL_APP_ID") ?: "20e899e4-8b60-411f-a3ec-243ebbf5e40f"),
+        ]
+
+        // Crashlytics: include debug symbols for readable crash reports.
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties["storeFile"])
+                storePassword keystoreProperties["storePassword"]
+                keyAlias keystoreProperties["keyAlias"]
+                keyPassword keystoreProperties["keyPassword"]
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig = signingConfigs.debug
+        }
+        release {
+            signingConfig = signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile(
+                "proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+}

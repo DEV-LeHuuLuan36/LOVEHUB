@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <!-- Streak fire icon -->
+    <!-- Flame base -->
+    <path
+        android:fillColor="#FF6B00"
+        android:pathData="M100,190c-35,0 -60,-30 -60,-70c0,-20 10,-35 25,-50c5,-5 10,-15 10,-25c0,20 15,35 25,35c10,0 25,-15 25,-35c0,10 5,20 10,25c15,15 25,30 25,50c0,40 -25,70 -60,70z"/>
+    <!-- Inner flame -->
+    <path
+        android:fillColor="#FFB300"
+        android:pathData="M100,180c-25,0 -45,-22 -45,-52c0,-15 8,-26 18,-37c4,-4 8,-11 8,-18c0,15 12,26 19,26c7,0 19,-11 19,-26c0,7 4,14 8,18c10,11 18,22 18,37c0,30 -20,52 -45,52z"/>
+    <!-- Flame highlight -->
+    <path
+        android:fillColor="#FFEB3B"
+        android:pathData="M100,170c-15,0 -28,-13 -28,-32c0,-9 5,-16 11,-23c3,-3 5,-7 5,-11c0,9 7,16 12,16c5,0 12,-7 12,-16c0,4 2,8 5,11c6,7 11,14 11,23c0,19 -13,32 -28,32z"/>
+</vector>
