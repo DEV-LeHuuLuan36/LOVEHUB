@@ -174,15 +174,16 @@ lib/
 
 ---
 
-## PENDING TASKS (đã ghi trong LOVEHUB SUMMARY)
+## TESTING & FIXES (Ongoing)
 
-1. **Test**: WorkManager 15 phút, streak qua ngày, HP decay
-2. **Test lại**: Push notification (sau khi sửa UI mood/check-in)
-3. **Export Memories**: PDF/ảnh/zip (chưa làm)
-4. **Backup Data**: cơ chế export JSON (chưa làm)
-5. **Delete Account**: thao tác xóa vĩnh viễn (chưa làm)
-6. **Rà bản dịch Tiếng Việt**: sau localization sweep
-7. **Habit Cat .riv**: file không có input tương tác (cần thay file khác nếu muốn)
+### Priority
+1. Test WorkManager 15 phút refresh
+2. Test streak chuyển ngày (23:59 deadline)
+3. Test HP decay khi không check-in
+4. Test push notification (check-in, mood, memory, pet)
+
+### Known Items
+- Habit Cat .riv: cần file có input tương tác (hiện tại placeholder)
 
 ---
 
